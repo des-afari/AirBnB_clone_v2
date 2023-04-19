@@ -145,6 +145,5 @@ Usage: <class_name>.update(<_id>, <dictionary>)
 
 * Ezra Nobrega <ezra.nobrega@outlook.com>
 * Justin Majetich <justinmajetich@gmail.com>
-* Juan Pablo Yepes <juanpabloyepest@gmail.com>
-* David Henao <davehh1211@gmail.com>
+* Desmond Afari <afaridesmond@gmail.com>
   
