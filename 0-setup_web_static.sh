@@ -1,17 +1,30 @@
 #!/usr/bin/env bash
-### Installs nginx, configures content serving to hbnb_static
-### Creates /data/ directories + symlink, index.html page
-### Assigns ownership rights of /data/ recursively to ubuntu user + group
-
-new_string="location \/hbnb_static {\n alias \/data\/web_static\/current\/;"
-
-apt-get update -y
-apt-get install nginx -y
-mkdir -p /data/web_static/shared/
-mkdir -p /data/web_static/releases/test/
-echo "Holberton School" > /data/web_static/releases/test/index.html
-ln -sfn /data/web_static/releases/test/ /data/web_static/current
+# Install Nginx if it not already installed
+if ! command -v nginx &> /dev/null;
+then
+    sudo apt-get -y update
+    sudo apt-get install -y nginx
+    sudo service nginx start
+fi
+# Create those folders if doesnt alreeady exist
+sudo mkdir -p /data/web_static/shared/
+sudo mkdir -p /data/web_static/releases/test/
+#Create a fake HTML with simple content to test your Ngninx configuration
+echo "
+<html>
+  <head>
+  </head>
+  <body>
+    Holberton School
+  </body>
+</html>
+" > /data/web_static/releases/test/index.html
+# Create a symbolik link that delete and recreated every time is ran
+source_file="/data/web_static/current"
+destiny_file="/data/web_static/releases/test/"
+sudo ln -sf "$destiny_file" "$source_file"
+# Give ownership of the /data/ to the ubuntu user and group recursive
 sudo chown -R ubuntu:ubuntu /data/
-sed -i -E "s/^[^#]+location \/ \{/$new_string/" /etc/nginx/sites-available/default
-service nginx reload
-service nginx restart
+# Update the Ninx configuration to work https://mydomainame.tech/hbnb_static
+sudo sed -i "38i \ \tlocation /hbnb_static/ {\n\t\talias $source_file/;\n\t\tautoindex off;\n\t}\n" /etc/nginx/sites-enabled/default
+sudo service nginx restart

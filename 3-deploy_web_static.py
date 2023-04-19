@@ -1,60 +1,69 @@
 #!/usr/bin/python3
-""" Fabric script to call do_deploy() and do_pack() methods
-"""
-import os
-import time
-from fabric.api import *
-from pathlib import Path
+""" Write a Fabric script (based on the file
+ 2-do_deploy_web_static.py) that creates and distributes
+  an archive to your web servers, using the function
+   deploy"""
+from fabric.api import local, env, run, put
+from datetime import datetime
+from os.path import exists
 
-env.user = 'ubuntu'
-env.hosts = ['35.243.219.137', '35.237.245.133']
+env.hosts = ['34.73.169.245', '35.231.18.60']
 
 
 def do_pack():
-    """ Archives web_static contents as a tarball to /versions folder
-    """
-    date_var = time.strftime("%Y%m%d%H%M%S")
-    directory = "versions/web_static_{}.tgz".format(date_var)
+    """[summary]"""
+    local('mkdir -p versions')
+    tar_dir = local("tar -czvf versions/web_static_{}.tgz web_static/".format((
+        datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))), capture=True)
 
-    try:
-        local("mkdir -p ./versions && tar -zcvf ./{} ./web_static"
-              .format(directory))
-    except:
-        return None
-    else:
-        return directory
+    if tar_dir.succeeded:
+        return tar_dir
+    return None
 
 
 def do_deploy(archive_path):
-    """ Uploads archive to /tmp/, uncompresses, cleans up
-    """
-    p = Path(archive_path)
-    f_full = p.name
-    f_noext = p.stem
-
-    if not os.path.exists(archive_path):
-        return False
-    else:
-        put(archive_path, "/tmp/")
-        run("mkdir -p /data/web_static/releases/{}/".format(f_noext))
-        run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/"
-            .format(f_full, f_noext))
-        run("rm /tmp/{}".format(f_full))
-        run("mv /data/web_static/releases/{}/web_static/*\
-    /data/web_static/releases/{}/".format(f_noext, f_noext))
-        run("rm -rf /data/web_static/releases/{}/web_static".format(f_noext))
-        run("rm -rf /data/web_static/current")
-        run("ln -s /data/web_static/releases/{}/ /data/web_static/current"
-            .format(f_noext))
+    """[summary]"""
+    # Returns False if the file at the path archive_path doesn’t exist
+    if exists(archive_path):
+        # archive_path = versions/web_static_#####.tgz
+        # file_path = web_static_#####.tgz
+        file_path = archive_path.split("/")[1]
+        # serv_path = /data/web_static/releases/web_static_#####
+        serv_path = "/data/web_static/releases/{}".format(
+            file_path.replace(".tgz", ""))
+        # Upload the archive to the /tmp/ directory of the web server
+        put('{}'.format(archive_path), '/tmp/')
+        # ???
+        run('mkdir -p {}'.format(serv_path))
+        # Uncompress the archive to the folde <..> on the web server
+        run('tar -xzf /tmp/{} -C {}/'.format(
+            file_path,
+            serv_path))
+        # Delete the archive from the web server
+        run('rm /tmp/{}'.format(file_path))
+        # ???
+        run('mv -f {}/web_static/* {}/'.format(serv_path, serv_path))
+        # Delete the symbolic link <..> from the web server
+        run('rm -rf {}/web_static'.format(
+            serv_path))
+        # ??
+        run('rm -rf /data/web_static/current')
+        # run('unlink /data/web_static/current')
+        # Create a new Symbolic link, linked to the new version of your code
+        run('ln -s {} /data/web_static/current'.format(
+            serv_path))
+        # Retur  True if all operations have been done correctly
         return True
+    else:
+        return False
 
 
 def deploy():
-    """ Calls do_pack() and do_deploy() methods
-    """
-
-    pack_dir = do_pack()
-    if pack_dir is None:
+    """ Summary """
+    archive = do_pack()
+    if archive is None:
         return False
-
-    return do_deploy(pack_dir)
+    else:
+        value = archive.__dict__["command"].split(" ")[-2]
+        print(value)
+        return do_deploy(value)

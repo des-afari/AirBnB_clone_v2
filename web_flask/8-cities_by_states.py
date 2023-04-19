@@ -1,32 +1,30 @@
 #!/usr/bin/python3
-""" Flask script starts web application
-    Listening on 0.0.0.0:5000
-    Fetches data from FileStorage, creates dynamic HTML page, closes db session
-"""
-from flask import Flask, render_template
+"""Write a script that starts a Flask web application
+and would be listening on 0.0.0.0, port 5000"""
+from flask import Flask, request, render_template
 from models import storage
+from models.state import State
+
 
 app = Flask(__name__)
-app.url_map.strict_slashes = False
 
 
-@app.route('/cities_by_states')
-def render_cities_states_page():
-    """ Returns HTML page filled with data from FileStorage engine
+@app.route("/cities_by_states", strict_slashes=False)
+def states_list():
+    """/cities_by_states folder
+
+    Returns:
+        [HTML content: [display a HTML page: (inside the tag BODY)]
     """
-    states_list = []
-    objs = storage.all()
-    for key, value in objs.items():
-        if key.split(".")[0] == "State":
-                states_list.append(value)
-    return render_template('8-cities_by_states.html', states=states_list)
+    states = list(storage.all(State).values())
+    return render_template("8-cities_by_states.html", states=states)
 
 
 @app.teardown_appcontext
-def teardown_db(self):
-    """ Closes database session
-    """
+def remove_session(exception):
+    """fter each request you must remove the current SQLAlchemy Session"""
     storage.close()
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5000)

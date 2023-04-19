@@ -4,25 +4,23 @@ and would be listening on 0.0.0.0, port 5000"""
 from flask import Flask, request, render_template
 from models import storage
 from models.state import State
+from models.amenity import Amenity
 
 
 app = Flask(__name__)
 
 
-@app.route("/states", strict_slashes=False)
-@app.route("/states/<id>", strict_slashes=False)
-def states_id(id=None):
+@app.route("/hbnb_filters", strict_slashes=False)
+def hbnb_filter():
     """/states folder with an id
 
     Returns:
         [HTML content: [display a HTML page: (inside the tag BODY)]
     """
     states = storage.all(State)
-    if id is None:
-        return render_template("9-states.html", states=states)
-    else:
-        return render_template(
-            "9-states.html", states=states, id="State." + id)
+    amenities = storage.all(Amenity)
+    return render_template(
+        "10-hbnb_filters.html", states=states, amenities=amenities)
 
 
 @app.teardown_appcontext

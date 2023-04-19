@@ -1,31 +1,46 @@
 #!/usr/bin/python3
-""" Flask script starts web application
-    Listening on 0.0.0.0:5000
-"""
-from flask import Flask, escape
+"""Write a script that starts a Flask web application
+and would be listening on 0.0.0.0, port 5000"""
+from flask import Flask
+
 app = Flask(__name__)
-app.url_map.strict_slashes = False
 
 
-@app.route('/c/<text>')
-def display_c(text):
-    """ Returns string with text variable when specified app.route is queried
+@app.route("/", strict_slashes=False)
+def hello():
+    """main or home route
+
+    Rules that end with a slash are “branches”, others
+    are “leaves”. If << strict_slashes >> is enabled
+    (the default), visiting a branch URL without a
+    trailing slash will redirect to the URL with a slash appended.
+
+    Returns:
+            [string]: [display “Hello HBNB!”]
     """
-    return 'C %s' % escape(text.replace("_", " "))
+    return "Hello HBNB!"
 
 
-@app.route('/')
-def display_hello():
-    """ Returns string when specified app.route is queried
+@app.route("/hbnb", strict_slashes=False)
+def hbnb():
     """
-    return 'Hello HBNB!'
+    /hbnb folder
 
-
-@app.route('/hbnb')
-def display_hbnb():
-    """ Returns string when specified app.route is queried
+    Returns:
+            [string]: [display “HBNB”]
     """
-    return 'HBNB'
+    return "HBNB"
+
+
+@app.route("/c/<text>", strict_slashes=False)
+def c(text):
+    """
+    /c folder
+
+    Returns:
+            [string]: [display “C” followed by the value of the text variable]
+    """
+    return "C {}".format(text).replace("_", " ")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5000)

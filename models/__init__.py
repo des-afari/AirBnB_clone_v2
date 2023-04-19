@@ -1,27 +1,14 @@
 #!/usr/bin/python3
-"""Selects between FileStorage and DBStorage instance for your application"""
+"""This module instantiates an object of class FileStorage"""
+from models.engine.file_storage import FileStorage
+from models.engine.db_storage import DBStorage
 from os import getenv
 
-from models.base_model import BaseModel
-from models.base_model import Base
-from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
+STORAGE = getenv('HBNB_TYPE_STORAGE')
 
-
-""" Environment variable 'HBNB_TYPE_STORAGE' acts as a toggle
-"""
-
-if getenv('HBNB_TYPE_STORAGE') == "db":
-
-    from models.engine.db_storage import DBStorage
+if STORAGE == "db":
     storage = DBStorage()
     storage.reload()
-
 else:
-    from models.engine.file_storage import FileStorage
     storage = FileStorage()
     storage.reload()
