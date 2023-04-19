@@ -1,21 +1,19 @@
 #!/usr/bin/python3
-""" instances amenities """
-from models.base_model import BaseModel, Base
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+""" 0x02. AirBnB clone - MySQL, task 10. DBStorage - Amenity... and BOOM! """
+from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-from models.place import Place
-from os import getenv
-
-STORAGE = getenv("HBNB_TYPE_STORAGE")
+from .base_model import BaseModel, Base
+from .place import place_amenity
 
 
 class Amenity(BaseModel, Base):
-    """Permit to add the amenities for places"""
-    __tablename__ = "amenities"
-    if STORAGE == "db":
-        name = Column(String(128), nullable=False)
-        place_amenities = relationship(
-            'Place', secondary=Place.place_amenity)
+    """ Defines attributes for `Amenity` as it inherits from `BaseModel`,
+    and ORM properties in relation to table `amenities`.
 
-    else:
-        name = ""
+    Attributes:
+        name (Column): name of state, string of max 128 chars
+        amenities (relationship): many-to-many-association to `Place`
+    """
+    __tablename__ = 'amenities'
+    name = Column(String(128), nullable=False)
+    place_amenities = relationship('Place', secondary=place_amenity)

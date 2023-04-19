@@ -1,58 +1,36 @@
 #!/usr/bin/python3
-""" Write a Fabric script (based on the file
-1-pack_web_static.py) that distributes an archive
-to your web servers, using the function do_deploy
+""" 0x03. AirBnB clone - Deploy static, task 2. Deploy archive!
 """
-from fabric.api import local, env, run, put
-from datetime import datetime
-from os.path import exists
+from fabric.api import env, put, run
+from os import path
 
-env.hosts = ['34.73.169.245', '35.231.18.60']
-
-
-def do_pack():
-    """[summary]"""
-    local('mkdir -p versions')
-    tar_dir = local("tar -czvf versions/web_static_{}.tgz web_static/".format((
-        datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))), capture=True)
-
-    if tar_dir.succeeded:
-        return tar_dir
-    return None
+env.hosts = ['35.196.49.136', '34.74.70.223']
+env.user = 'ubuntu'
 
 
 def do_deploy(archive_path):
-    """[summary]"""
-    # Returns False if the file at the path archive_path doesn’t exist
-    if exists(archive_path):
-        # archive_path = versions/web_static_#####.tgz
-        # file_path = web_static_#####.tgz
-        file_path = archive_path.split("/")[1]
-        # serv_path = /data/web_static/releases/web_static_#####
-        serv_path = "/data/web_static/releases/{}".format(
-            file_path.replace(".tgz", ""))
-        # Upload the archive to the /tmp/ directory of the web server
-        put('{}'.format(archive_path), '/tmp/')
-        # ???
-        run('mkdir -p {}'.format(serv_path))
-        # Uncompress the archive to the folde <..> on the web server
-        run('tar -xzf /tmp/{} -C {}/'.format(
-            file_path,
-            serv_path))
-        # Delete the archive from the web server
-        run('rm /tmp/{}'.format(file_path))
-        # ???
-        run('mv -f {}/web_static/* {}/'.format(serv_path, serv_path))
-        # Delete the symbolic link <..> from the web server
-        run('rm -rf {}/web_static'.format(
-            serv_path))
-        # ??
-        run('rm -rf /data/web_static/current')
-        # run('unlink /data/web_static/current')
-        # Create a new Symbolic link, linked to the new version of your code
-        run('ln -s {} /data/web_static/current'.format(
-            serv_path))
-        # Retur  True if all operations have been done correctly
-        return True
-    else:
+    """ Distributes a .tgz archive from the contents of `web_static/` in AirBnB
+    clone repo to the web servers
+
+    Retruns:
+        (bool): `True` if all operations successful, `False` otherwise
+    """
+    if not path.exists(archive_path) or archive_path is None:
         return False
+
+    f_name = path.basename(archive_path)
+    d_name = f_name.split('.')[0]
+
+    put(local_path=archive_path, remote_path='/tmp/')
+    run('mkdir -p /data/web_static/releases/{}/'.format(d_name))
+    run('tar -xzf /tmp/{} -C /data/web_static/releases/{}/'.format(
+        f_name, d_name))
+    run('rm /tmp/{}'.format(f_name))
+    run('mv /data/web_static/releases/{}/web_static/* '.format(d_name) +
+        '/data/web_static/releases/{}/'.format(d_name))
+    run('rm -rf /data/web_static/releases/{}/web_static'.format(d_name))
+    run('rm -rf /data/web_static/current')
+    run('ln -s /data/web_static/releases/{}/ /data/web_static/current'.format(
+        d_name))
+
+    return True
